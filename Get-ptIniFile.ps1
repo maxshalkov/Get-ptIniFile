@@ -1,34 +1,52 @@
 ﻿function Get-ptIniFile{
+<#
+    .SYNOPSIS
+        Считывание ini-файла.
 
-    [cmdletbinding()]
-    Param(
-
-        [parameter(Mandatory=$true)]
-        [string]$FilePath
-
-    )
-
-    Begin{
-        $Ini = @{}
-    }
+    .DESCRIPTION
+        Работа с ini-файлом как с объектом со свойствами. 
     
-    Process{
-        Get-Content $FilePath | Where-Object {$_ -match "^[^;]"} | ForEach-Object {
-            switch ($_){
-                {$_ -match "\["} {
-                    $Head = $_ -replace "\[|\]" 
-                    $Ini[$Head] = @()
-                    return
-                }
+    .EXAMPLE
+        Get-ptIniFile -FilePath test.ini
+    
+    .PARAMETER FilePath
+        Путь к ini-файлу
 
-                {$Head -ne $null} {
-                    $Ini[$Head] += ,$_
-                }
+    .NOTES
+        Author: maxshalkov
+        Date  : 01.07.2017
+#>
+
+[cmdletbinding()]
+Param(
+    [parameter(Mandatory=$true)]
+    [string]$FilePath
+)
+
+begin{
+    if (-not (Test-Path $FilePath)){
+        throw "__pt: Указанный файл $FilePath не найден."
+    }
+} # end begin
+
+process{
+    Get-Content $FilePath | Where-Object {$_ -match "^[^;]"} | ForEach-Object {
+        $Ini = @{}
+    }{
+        switch ($_){
+            {$_ -match "\["} {
+                $Head = $_ -replace "\[|\]" 
+                $Ini[$Head] = @()
+                return
+            }
+
+            {$Head -ne $null} {
+                $Ini[$Head] += ,$_
             }
         }
-    }
-
-    End{
+    }{
         return $Ini
     }
+} # end process
+
 }
